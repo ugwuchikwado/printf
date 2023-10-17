@@ -1,45 +1,51 @@
 #include "main.h"
-/**
- * _printf - is a function that selects the correct function to print.
- * @format: identifier to look for.
- * Return: the length of the string.
- */
-int _printf(const char * const format, ...)
-{
-	convert_match m[] = {
-		{"%s", printf_string}, {"%c", printf_char},
-		{"%%", printf_37},
-		{"%i", printf_int}, {"%d", printf_dec}, {"%r", printf_srev},
-		{"%R", printf_rot13}, {"%b", printf_bin}, {"%u", printf_unsigned},
-		{"%o", printf_oct}, {"%x", printf_hex}, {"%X", printf_HEX},
-		{"%S", printf_exclusive_string}, {"%p", printf_pointer}
-	};
+#include <limits.h>
+#include <stdio.h>
 
+/**
+ * _printf - produces an output with respect to a format
+ * @format: format string containing the characters and the specifiers
+ * Description: this function will call the get_print() function that will
+ * determine which printing function to call depending on the conversion
+ * specifiers contained into fmt
+ * Return: length of the formatted output string
+ */
+int _printf(const char *format, ...)
+{
+	int (*pfunc)(va_list, flags_t *);
+	const char *k;
 	va_list args;
-	int i = 0, j, len = 0;
+	flags_t flags = {0, 0, 0};
+
+	register int num = 0;
 
 	va_start(args, format);
-	if (format == NULL || (format[0] == '%' && format[1] == '\0'))
+	if (!format || (format[0] == '%' && !format[1]))
 		return (-1);
-
-Here:
-	while (format[i] != '\0')
+	if (format[0] == '%' && format[1] == ' ' && !format[2])
+		return (-1);
+	for (k = format; *k; k++)
 	{
-		j = 13;
-		while (j >= 0)
+		if (*k == '%')
 		{
-			if (m[j].id[0] == format[i] && m[j].id[1] == format[i + 1])
+			k++;
+			if (*k == '%')
 			{
-				len += m[j].f(args);
-				i = i + 2;
-				goto Here;
+				count += _putchar('%');
+				continue;
 			}
-			j--;
-		}
-		_putchar(format[i]);
-		len++;
-		i++;
+			while (get_flag(*k, &flags))
+				k++;
+			pfunc = get_print(*k);
+			num += (pfunc)
+				? pfunc(arguments, &flags)
+				: _printf("%%%c", *k);
+		} else
+			num += _putchar(*k);
 	}
-	va_end(args);
-	return (len);
+	_putchar(-1);
+	va_end(arguments);
+	return (num);
+
 }
+
